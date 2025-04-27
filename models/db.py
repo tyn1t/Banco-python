@@ -91,6 +91,20 @@ class DB:
         except sqlite3.Error as e:
             return e
             
-
+    def pegar_saldo_atual(self, user_id):
+        try:
+            self.cursor.execute(
+                '''
+                SELECT saldo 
+                FROM Extrato 
+                WHERE user_id = ? 
+                ORDER BY id DESC 
+                LIMIT 1
+                ''', (user_id,)
+            )
+            resultado = self.cursor.fetchone()
+            return resultado[0] if resultado else 0.0
+        except sqlite3.Error as e:
+            return e
 db = DB()
 db.db_create()

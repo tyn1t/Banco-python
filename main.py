@@ -40,14 +40,17 @@ user_id = user[0][0]
 date = datetime.datetime.now()
 
 if user_id:
+    Oper.saldo = db.pegar_saldo_atual(user_id=user_id)
     db.db_insert_Extrato(saldo=Oper.saldo, date=date, user_id=user_id)
 
 while True:
     
     print("Bem Banco BPY ...")
-    opcoes = input(menu).lower()
     
     print(f"User:  {user[0][1]:<15}  |  Saldo: R$ {Oper.saldo:,.2f}")
+    
+    opcoes = input(menu).lower()
+    
     
     if opcoes == "d": 
         print("Depositar")
