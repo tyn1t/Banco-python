@@ -1,7 +1,13 @@
 import os
 from models.db import db
-import datetime
-from Operecoes.operecoes import Operecoes
+from datetime import datetime
+from Conta.conta import Conta
+from Conta.contatype import User
+
+
+conta = Conta()
+usuario = User()
+now = datetime.now()
 
 menu = """
     [d] => depositar 
@@ -17,37 +23,65 @@ def limpar_terminal():
     return os.system("cls" if os.name == "nt" else "clear")
 
 
+def digite_input(title: str = ""):
+    try:
+        Int = int(input(title + ": "))
+        return Int
+    except ValueError:
+        print("Erro: o valor deve ser um número inteiro!")
+        return None
 
-Oper = Operecoes()
-
-
-
-
-nome = input('Nome: ')
-if db.usuario_existe(nome):
-    print("continua ...")
-else:
-    print("Banco BPY")
-    print('Cadastra ...')
-    nome = input('Nome: ')
-    idade = int(input('Idade: '))
-    db.db_insert_User(name=nome, age=idade)
+def tela_inicial():
     
-user = db.db_mostra_user(nome)
+    continu = False
+    while True:
+        nome = input('Nome: ')
+        if db.usuario_existe(nome):
+            print("Usuário encontrado. Continuando...")
+            continu = True
+        else:
+            print("Banco BPY")
+            print('Cadastro de novo usuário...')
+            
+            usuario.nome = input('Nome: ')
+            usuario.idade = digite_input('Idade')
+            usuario.cpf = digite_input('CPF')
+            usuario.typeconta = digite_input('Tipo de Conta')
+            
+            if usuario.idade is not None and usuario.cpf is not None and usuario.conta is not None:
+                
+                usuario.type_conta(usuario.typeconta)
+                
+                db.db_insert_User(name=nome, age=usuario.idade)
+                continu = True
+            else:
+                print("Erro: dados inválidos. Tente novamente.")
+
+        if continu:
+            user = db.db_mostra_user(nome)
+            user_id = user[0][0]
+            
+            if user_id:
+                Conta.saldo = db.pegar_saldo_atual(user_id=user_id)
+                
+                date = now.strftime("%Y-%m-%d %H:%M:%S")
+                db.db_insert_Extrato(saldo=Conta.saldo, date=date, user_id=user_id)
+                return user
+        
+        break
+
+
+date = now.strftime("%Y-%m-%d %H:%M:%S")
+
+
+user = tela_inicial()
 user_id = user[0][0]
-
-
-date = datetime.datetime.now()
-
-if user_id:
-    Oper.saldo = db.pegar_saldo_atual(user_id=user_id)
-    db.db_insert_Extrato(saldo=Oper.saldo, date=date, user_id=user_id)
 
 while True:
     
-    print("Bem Banco BPY ...")
     
-    print(f"User:  {user[0][1]:<15}  |  Saldo: R$ {Oper.saldo:,.2f}")
+    print("Bem Banco BPY ...")
+    print(f"User:  {user[0][1]:<15}  |  Saldo: R$ {Conta.saldo:,.2f}")
     
     opcoes = input(menu).lower()
     
@@ -55,15 +89,15 @@ while True:
     if opcoes == "d": 
         print("Depositar")
         valor = input('Valor:')
-        Oper.Depositar(value=float(valor))
-        db.db_insert_Extrato(saldo=Oper.saldo, date=datetime.datetime.now(), user_id=user_id)
+        conta.Depositar(value=float(valor))
+        db.db_insert_Extrato(saldo=conta.saldo, date=datetime.datetime.now(), user_id=user_id)
 
         
     if opcoes == "s":
         print("Sacar")
         valor = input('Valor:')
-        Oper.Sacar(value=float(valor))
-        db.db_insert_Extrato(saldo=Oper.saldo, date=datetime.datetime.now(), user_id=user_id)
+        conta.Sacar(value=float(valor))
+        db.db_insert_Extrato(saldo=conta.saldo, date=datetime.datetime.now(), user_id=user_id)
 
         
     
